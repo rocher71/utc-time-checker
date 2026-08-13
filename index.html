@@ -140,11 +140,14 @@
 //   US Mountain: MDT -6 (summer) <-> MST -7 (winter)
 // =====================================================================
 const ZONES = [
-  { label: "KST", offset: 9,  members: ["Sooya", "유준빠"] },
-  { label: "BST", offset: 1,  members: ["Nabubu"] },
-  { label: "MST", offset: -7, members: ["Kelz"] },
-  { label: "TST", offset: 8,  members: ["Yun Yun"] },
-  { label: "GST", offset: 4,  members: ["Ellen"] },
+  { label: "KST",  offset: 9,  members: ["Sooya", "유준빠"] },
+  { label: "BST",  offset: 1,  members: ["Nabubu", "susiej"] },
+  { label: "MST",  offset: -7, members: ["Kelz"] },
+  { label: "TST",  offset: 8,  members: ["Yun Yun"] },
+  { label: "GST",  offset: 4,  members: ["Ellen"] },
+  { label: "CEST", offset: 2,  members: ["medulka"] },
+  { label: "EDT",  offset: -4, members: ["temple", "saintsovereign", "chugernot"] },
+  { label: "CDT",  offset: -5, members: ["sarah"] },
 ];
 ZONES.sort((a, b) => b.offset - a.offset); // display east → west; add entries in any order
 const AWAKE_START = 8 * 60; // local 08:00–24:00 = awake
