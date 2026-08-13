@@ -146,6 +146,7 @@ const ZONES = [
   { label: "TST", offset: 8,  members: ["Yun Yun"] },
   { label: "GST", offset: 4,  members: ["Ellen"] },
 ];
+ZONES.sort((a, b) => b.offset - a.offset); // display east → west; add entries in any order
 const AWAKE_START = 8 * 60; // local 08:00–24:00 = awake
 
 function localMinutes(utcMin, offsetHours) {
