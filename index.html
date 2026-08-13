@@ -65,13 +65,22 @@
     padding: 0 2px; margin-bottom: 14px;
   }
   .now-btn {
-    display: block; margin: 0 auto 24px;
+    display: block; margin: 0 auto 16px;
     background: var(--card); color: var(--accent);
     border: 1px solid var(--accent); border-radius: 20px;
     padding: 8px 24px; font-size: 14px; font-weight: 600;
     cursor: pointer; -webkit-tap-highlight-color: transparent;
   }
   .now-btn:active { background: var(--accent); color: var(--bg); }
+
+  .awake-count {
+    text-align: center; font-size: 15px; color: var(--dim);
+    margin-bottom: 24px;
+  }
+  .awake-count b {
+    font-size: 22px; color: var(--green); font-variant-numeric: tabular-nums;
+    vertical-align: -1px;
+  }
 
   .zone {
     display: flex; align-items: center; gap: 12px;
@@ -111,6 +120,8 @@
     <div class="sub">Slide to find the best event time</div>
   </header>
 
+  <button class="now-btn" id="nowBtn">Now</button>
+
   <div class="utc-display">
     <div class="time" id="utcTime">--:--</div>
     <div class="label">UTC</div>
@@ -124,7 +135,8 @@
   <div class="slider-scale">
     <span>00</span><span>06</span><span>12</span><span>18</span><span>24</span>
   </div>
-  <button class="now-btn" id="nowBtn">Now</button>
+
+  <div class="awake-count">Awake right now: <b id="awakeNum">0</b> / <span id="totalNum">0</span></div>
 
   <div id="zones"></div>
 
@@ -181,14 +193,19 @@ zonesEl.innerHTML = ZONES.map((z, i) => `
     <div class="state"></div>
   </div>`).join("");
 
+const totalMembers = ZONES.reduce((n, z) => n + z.members.length, 0);
+document.getElementById("totalNum").textContent = totalMembers;
+
 function render() {
   const utcMin = Number(slider.value);
   utcTime.textContent = utcMin === 1440 ? "24:00" : fmt(utcMin);
+  let awakeMembers = 0;
   ZONES.forEach((z, i) => {
     const lm = localMinutes(utcMin, z.offset);
     const dd = dayDiff(utcMin, z.offset);
     const card = document.getElementById("zone-" + i);
     const awake = lm >= AWAKE_START;
+    if (awake) awakeMembers += z.members.length;
     card.classList.toggle("sleep", !awake);
     card.querySelector(".t").textContent = fmt(lm);
     card.querySelector(".state").textContent = awake ? "☀️" : "💤";
@@ -196,6 +213,7 @@ function render() {
     badge.hidden = dd === 0;
     badge.textContent = dd > 0 ? "+1d" : "−1d";
   });
+  document.getElementById("awakeNum").textContent = awakeMembers;
 }
 
 function currentUtcMin() {
