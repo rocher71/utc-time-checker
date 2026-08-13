@@ -85,6 +85,11 @@
   .zone .zinfo { flex: 1; min-width: 0; }
   .zone .zlabel { font-size: 13px; font-weight: 600; letter-spacing: 1px; }
   .zone .zoffset { font-size: 11px; color: var(--dim); font-weight: 400; margin-left: 4px; }
+  .zone .zcount {
+    font-size: 11px; font-weight: 700; color: var(--text);
+    background: var(--track); border-radius: 9px;
+    padding: 1px 7px; margin-left: 6px; vertical-align: 1px;
+  }
   .zone .members { font-size: 13px; color: var(--dim); margin-top: 3px; overflow-wrap: break-word; }
   .zone .ltime {
     font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums;
@@ -162,7 +167,7 @@ const nowMarker = document.getElementById("nowMarker");
 zonesEl.innerHTML = ZONES.map((z, i) => `
   <div class="zone" id="zone-${i}">
     <div class="zinfo">
-      <div class="zlabel">${z.label}<span class="zoffset">UTC${z.offset >= 0 ? "+" : ""}${z.offset}</span></div>
+      <div class="zlabel">${z.label}<span class="zoffset">UTC${z.offset >= 0 ? "+" : ""}${z.offset}</span><span class="zcount">${z.members.length}</span></div>
       <div class="members">${z.members.join(", ")}</div>
     </div>
     <div class="ltime"><span class="daybadge" hidden></span><span class="t"></span></div>
