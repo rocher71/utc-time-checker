@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>APZ Time Checker</title>
+<style>
+  :root {
+    --bg: #0f1420;
+    --card: #1a2233;
+    --card-sleep: #141926;
+    --text: #e8edf5;
+    --dim: #8b95a8;
+    --green: #3ddc84;
+    --sleep: #5a6478;
+    --accent: #4da3ff;
+    --track: #2a3550;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
+  }
+  .container { max-width: 480px; margin: 0 auto; padding: 20px 16px 40px; }
+  header { text-align: center; margin-bottom: 20px; }
+  header h1 { font-size: 18px; font-weight: 600; letter-spacing: 0.5px; }
+  header .sub { font-size: 12px; color: var(--dim); margin-top: 2px; }
+
+  .utc-display { text-align: center; margin-bottom: 8px; }
+  .utc-display .time { font-size: 56px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
+  .utc-display .label { font-size: 13px; color: var(--accent); font-weight: 600; letter-spacing: 2px; margin-top: 4px; }
+
+  .slider-wrap { position: relative; padding: 18px 0 4px; }
+  .now-marker {
+    position: absolute; top: 2px; transform: translateX(-50%);
+    font-size: 10px; color: var(--accent); white-space: nowrap;
+  }
+  .now-marker::after { content: "▼"; display: block; text-align: center; font-size: 8px; }
+  input[type="range"] {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 44px; background: transparent; touch-action: none;
+  }
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 10px; border-radius: 5px; background: var(--track);
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--accent); margin-top: -9px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5); border: 3px solid #fff;
+  }
+  input[type="range"]::-moz-range-track {
+    height: 10px; border-radius: 5px; background: var(--track);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--accent); border: 3px solid #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  }
+  .slider-scale {
+    display: flex; justify-content: space-between;
+    font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums;
+    padding: 0 2px; margin-bottom: 14px;
+  }
+  .now-btn {
+    display: block; margin: 0 auto 24px;
+    background: var(--card); color: var(--accent);
+    border: 1px solid var(--accent); border-radius: 20px;
+    padding: 8px 24px; font-size: 14px; font-weight: 600;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+  .now-btn:active { background: var(--accent); color: var(--bg); }
+
+  .zone {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--card); border-radius: 14px;
+    padding: 14px 16px; margin-bottom: 10px;
+    border-left: 4px solid var(--green);
+    transition: opacity 0.15s;
+  }
+  .zone.sleep { background: var(--card-sleep); border-left-color: var(--sleep); }
+  .zone.sleep .ltime, .zone.sleep .zlabel { color: var(--dim); }
+  .zone .zinfo { flex: 1; min-width: 0; }
+  .zone .zlabel { font-size: 13px; font-weight: 600; letter-spacing: 1px; }
+  .zone .zoffset { font-size: 11px; color: var(--dim); font-weight: 400; margin-left: 4px; }
+  .zone .members { font-size: 13px; color: var(--dim); margin-top: 3px; overflow-wrap: break-word; }
+  .zone .ltime {
+    font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums;
+    display: flex; align-items: baseline; gap: 6px; flex-shrink: 0;
+  }
+  .zone .daybadge {
+    font-size: 11px; font-weight: 600; color: var(--bg);
+    background: var(--dim); border-radius: 8px; padding: 1px 6px;
+  }
+  .zone .state { font-size: 18px; flex-shrink: 0; }
+
+  footer { text-align: center; font-size: 11px; color: var(--dim); margin-top: 24px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>APZ Time Checker</h1>
+    <div class="sub">Slide to find the best event time</div>
+  </header>
+
+  <div class="utc-display">
+    <div class="time" id="utcTime">--:--</div>
+    <div class="label">UTC</div>
+  </div>
+
+  <div class="slider-wrap">
+    <div class="now-marker" id="nowMarker" hidden>now</div>
+    <input type="range" id="slider" min="0" max="1440" step="30" value="720"
+           aria-label="UTC time of day">
+  </div>
+  <div class="slider-scale">
+    <span>00</span><span>06</span><span>12</span><span>18</span><span>24</span>
+  </div>
+  <button class="now-btn" id="nowBtn">Now</button>
+
+  <div id="zones"></div>
+
+  <footer>Green = awake (08–24) · Gray = sleeping (00–08)<br>Fixed offsets — update manually when DST changes</footer>
+</div>
+
+<script>
+// =====================================================================
+// EDIT HERE — alliance members' timezones.
+// offset = hours from UTC (negative and half-hour values like 5.5 work).
+// Fixed offsets: adjust manually when DST flips, e.g.
+//   UK: BST +1 (summer) <-> GMT 0 (winter)
+//   US Mountain: MDT -6 (summer) <-> MST -7 (winter)
+// =====================================================================
+const ZONES = [
+  { label: "KST", offset: 9,  members: ["Sooya", "유준빠"] },
+  { label: "BST", offset: 1,  members: ["Nabubu"] },
+  { label: "MST", offset: -7, members: ["Kelz"] },
+];
+const AWAKE_START = 8 * 60; // local 08:00–24:00 = awake
+
+function localMinutes(utcMin, offsetHours) {
+  return ((utcMin + offsetHours * 60) % 1440 + 1440) % 1440;
+}
+function dayDiff(utcMin, offsetHours) {
+  return Math.floor((utcMin + offsetHours * 60) / 1440);
+}
+function fmt(min) {
+  const h = String(Math.floor(min / 60)).padStart(2, "0");
+  const m = String(min % 60).padStart(2, "0");
+  return h + ":" + m;
+}
+
+const slider = document.getElementById("slider");
+const utcTime = document.getElementById("utcTime");
+const zonesEl = document.getElementById("zones");
+const nowMarker = document.getElementById("nowMarker");
+
+// build zone cards once
+zonesEl.innerHTML = ZONES.map((z, i) => `
+  <div class="zone" id="zone-${i}">
+    <div class="zinfo">
+      <div class="zlabel">${z.label}<span class="zoffset">UTC${z.offset >= 0 ? "+" : ""}${z.offset}</span></div>
+      <div class="members">${z.members.join(", ")}</div>
+    </div>
+    <div class="ltime"><span class="daybadge" hidden></span><span class="t"></span></div>
+    <div class="state"></div>
+  </div>`).join("");
+
+function render() {
+  const utcMin = Number(slider.value);
+  utcTime.textContent = utcMin === 1440 ? "24:00" : fmt(utcMin);
+  ZONES.forEach((z, i) => {
+    const lm = localMinutes(utcMin, z.offset);
+    const dd = dayDiff(utcMin, z.offset);
+    const card = document.getElementById("zone-" + i);
+    const awake = lm >= AWAKE_START;
+    card.classList.toggle("sleep", !awake);
+    card.querySelector(".t").textContent = fmt(lm);
+    card.querySelector(".state").textContent = awake ? "☀️" : "💤";
+    const badge = card.querySelector(".daybadge");
+    badge.hidden = dd === 0;
+    badge.textContent = dd > 0 ? "+1d" : "−1d";
+  });
+}
+
+function currentUtcMin() {
+  const d = new Date();
+  return d.getUTCHours() * 60 + d.getUTCMinutes();
+}
+function snapToNow() {
+  slider.value = Math.round(currentUtcMin() / 30) * 30;
+  render();
+}
+function placeNowMarker() {
+  // approximate thumb-center position along the track
+  const pct = currentUtcMin() / 1440;
+  const pad = 14; // ~half thumb width
+  nowMarker.style.left = `calc(${pad}px + ${pct} * (100% - ${pad * 2}px))`;
+  nowMarker.hidden = false;
+}
+
+slider.addEventListener("input", render);
+document.getElementById("nowBtn").addEventListener("click", snapToNow);
+
+snapToNow();
+placeNowMarker();
+setInterval(placeNowMarker, 60000);
+
+// self-check: time math (open console — silent when all pass)
+console.assert(localMinutes(0, 9) === 540, "KST midnight");
+console.assert(localMinutes(60, -7) === 1380, "MST wraps to previous day");
+console.assert(dayDiff(60, -7) === -1, "MST -1d");
+console.assert(dayDiff(1020, 9) === 1, "KST +1d after UTC 15:00");
+console.assert(localMinutes(0, 5.5) === 330, "half-hour offset");
+</script>
+</body>
+</html>
